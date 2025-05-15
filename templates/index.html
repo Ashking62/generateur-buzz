@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Générateur de Buzz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f7f7f7;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        select, input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        #result {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .ad, .premium {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Générateur de Buzz</h1>
+
+    <input type="text" id="topic" placeholder="Sujet (ex: voyage, motivation...)">
+
+    <select id="type">
+        {% for t in types %}
+            <option value="{{ t }}">{{ t.capitalize() }}</option>
+        {% endfor %}
+    </select>
+
+    <button onclick="generate()">Générer</button>
+
+    <div id="result"></div>
+
+    <div class="ad">
+        <!-- Emplacement pub (Google AdSense ou autre) -->
+        <p><em>Pub ici</em></p>
+    </div>
+
+    <div class="premium">
+        <button onclick="alert('Fonction Premium à venir !')">Passer à Premium</button>
+    </div>
+
+    <script>
+        async function generate() {
+            const topic = document.getElementById('topic').value;
+            const type = document.getElementById('type').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Génération en cours...';
+
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ topic, type })
+            });
+
+            const data = await response.json();
+
+            if (data.content) {
+                resultDiv.innerHTML = `<strong>Résultat :</strong><br><br>${data.content}`;
+            } else {
+                resultDiv.innerHTML = `Erreur : ${data.error}`;
+            }
+        }
+    </script>
+
+</body>
+</html>
