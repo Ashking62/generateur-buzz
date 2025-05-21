@@ -1,13 +1,14 @@
 from flask import Flask, render_template, request, jsonify
 import openai
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
 # Configure OpenAI API Key
-openai.api_key = os.getenv("OPENAI_API_KEY")  # Ajoute ta clé dans les variables d'environnement
-
-# Types de contenu disponibles
+openai.api_key = os.getenv("OPENAI_API_KEY")
 TYPES = {
     "facebook": "Écris un post Facebook engageant sur",
     "twitter": "Écris un tweet viral de moins de 280 caractères sur",
