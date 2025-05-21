@@ -1,14 +1,15 @@
 from flask import Flask, render_template, request, jsonify
-import openai
 import os
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 
+# Initialise le client OpenAI (nouvelle version)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 app = Flask(__name__)
 
-# Configure OpenAI API Key
-openai.api_key = os.getenv("OPENAI_API_KEY")
 TYPES = {
     "facebook": "Écris un post Facebook engageant sur",
     "twitter": "Écris un tweet viral de moins de 280 caractères sur",
@@ -32,7 +33,7 @@ def generate():
     prompt = f"{TYPES[content_type]} {topic}."
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Tu es un expert en marketing viral."},
@@ -41,7 +42,7 @@ def generate():
             max_tokens=150,
             temperature=0.8
         )
-        content = response["choices"][0]["message"]["content"].strip()
+        content = response.choices[0].message.content.strip()
         return jsonify({"content": content})
 
     except Exception as e:
