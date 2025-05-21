@@ -1,86 +1,103 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Générateur de Buzz</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: sans-serif;
-            background: #f7f7f7;
-            padding: 20px;
-            max-width: 600px;
-            margin: auto;
-        }
-        h1 {
-            text-align: center;
-        }
-        select, input, button {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            font-size: 16px;
-        }
-        #result {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .ad, .premium {
-            text-align: center;
-            margin-top: 30px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Générateur de Buzz</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
-
+  <div class="container">
     <h1>Générateur de Buzz</h1>
 
-    <input type="text" id="topic" placeholder="Sujet (ex: voyage, motivation...)">
-
     <select id="type">
-        {% for t in types %}
-            <option value="{{ t }}">{{ t.capitalize() }}</option>
-        {% endfor %}
+      {% for t in types %}
+        <option value="{{ t }}">{{ t.capitalize() }}</option>
+      {% endfor %}
     </select>
 
-    <button onclick="generate()">Générer</button>
+    <textarea id="topic" placeholder="Tape un sujet ici..."></textarea>
 
-    <div id="result"></div>
+    <button id="generateBtn">🎯 Générer</button>
+
+    <div class="output-container">
+      <pre id="output"></pre>
+      <button id="copyBtn">📋 Copier le texte</button>
+    </div>
+
+    <div class="share-buttons">
+      <button id="shareBtn-twitter"><i class="fab fa-twitter"></i> Twitter</button>
+      <button id="shareBtn-facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+      <button id="shareBtn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+      <button id="shareBtn-linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</button>
+    </div>
 
     <div class="ad">
-        <!-- Emplacement pub (Google AdSense ou autre) -->
-        <p><em>Pub ici</em></p>
+      <p><em>🌟 Espace publicitaire</em></p>
     </div>
 
     <div class="premium">
-        <button onclick="alert('Fonction Premium à venir !')">Passer à Premium</button>
+      <button onclick="alert('Fonction Premium à venir !')">🔥 Passer à Premium</button>
     </div>
+  </div>
 
-    <script>
-        async function generate() {
-            const topic = document.getElementById('topic').value;
-            const type = document.getElementById('type').value;
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = 'Génération en cours...';
+  <script>
+    async function generate() {
+      const topic = document.getElementById('topic').value;
+      const type = document.getElementById('type').value;
+      const output = document.getElementById('output');
+      output.innerHTML = "⏳ Génération en cours...";
 
-            const response = await fetch('/generate', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ topic, type })
-            });
+      const response = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, type })
+      });
 
-            const data = await response.json();
+      const data = await response.json();
+      output.innerHTML = data.content ? data.content : "❌ Erreur : " + data.error;
+    }
 
-            if (data.content) {
-                resultDiv.innerHTML = `<strong>Résultat :</strong><br><br>${data.content}`;
-            } else {
-                resultDiv.innerHTML = `Erreur : ${data.error}`;
-            }
-        }
-    </script>
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const text = document.getElementById('output').innerText;
+      navigator.clipboard.writeText(text).then(() => alert("✅ Texte copié !"));
+    });
 
+    function shareOn(platform) {
+      const text = document.getElementById('output').innerText;
+      const encodedText = encodeURIComponent(text);
+      const url = encodeURIComponent(window.location.href);
+      let shareUrl = "";
+
+      switch (platform) {
+        case 'twitter':
+          shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}&url=${url}`;
+          break;
+        case 'facebook':
+          shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${encodedText}`;
+          break;
+        case 'whatsapp':
+          shareUrl = `https://api.whatsapp.com/send?text=${encodedText}%20${url}`;
+          break;
+        case 'linkedin':
+          shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${encodedText}`;
+          break;
+      }
+
+      if (shareUrl) {
+        window.open(shareUrl, '_blank');
+      }
+    }
+
+    ['twitter', 'facebook', 'whatsapp', 'linkedin'].forEach(id => {
+      const btn = document.getElementById(`shareBtn-${id}`);
+      if (btn) {
+        btn.addEventListener('click', () => shareOn(id));
+      }
+    });
+
+    document.getElementById('generateBtn').addEventListener('click', generate);
+  </script>
 </body>
 </html>
